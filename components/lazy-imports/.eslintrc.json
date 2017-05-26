@@ -1,0 +1,17 @@
+{
+  "extends": ["eslint:recommended", "google"],
+  "env": {
+    "browser": true,
+    "es6": true
+  },
+  "plugins": [
+    "html"
+  ],
+  "rules": {
+    "new-cap": ["error", { "capIsNewExceptions": ["Polymer"] }],
+    "valid-jsdoc": "off"
+  },
+  "globals": {
+    "Polymer": true
+  }
+}
