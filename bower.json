@@ -1,6 +1,6 @@
 {
   "name": "app-pages-loader",
-  "description": "Component to load dinamically pages and keep a reduced DOM in huge apps.",
+  "description": "Component to load dynamically pages and keep a reduced DOM in huge apps.",
   "main": "app-pages-loader.html",
   "license": "MIT",
   "dependencies": {

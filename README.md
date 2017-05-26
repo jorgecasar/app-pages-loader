@@ -1,8 +1,8 @@
-[![Published on webcomponents.org](https://img.shields.io/badge/webcomponents.org-published-blue.svg)](https://www.webcomponents.org/element/owner/my-element)
+[![Published on webcomponents.org](https://img.shields.io/badge/webcomponents.org-published-blue.svg)](https://www.webcomponents.org/jorgecasar/app-pages-loader)
 
 # \<app-pages-loader\>
 
-Component to load dinamically pages and keep a reduced DOM in huge apps.
+Component to load dynamically pages and keep a reduced DOM in huge apps.
 
 <!--
 ```
