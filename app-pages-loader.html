@@ -1,0 +1,162 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../lazy-imports/lazy-imports-mixin.html">
+<link rel="import" href="../iron-selector/iron-selector.html">
+<!--
+`app-pages-loader`
+Component to load dinamically pages and keep a reduced DOM in huge apps.
+
+@demo demo/index.html
+-->
+
+<dom-module id="app-pages-loader">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+
+      iron-selector .iron-selected {
+        @apply --app-pages-loader-page-selected;
+      }
+    </style>
+    <slot id="imports"></slot>
+    <iron-selector
+      id="pages"
+      attr-for-selected="id"
+      selected="[[selected]]"></iron-selector>
+  </template>
+
+  <script>
+    /** @polymerElement */
+    class AppPagesLoader extends Polymer.LazyImportsMixin(Polymer.Element) {
+      static get is() { return 'app-pages-loader'; }
+      static get properties() {
+        return {
+          selected: {
+            type: String,
+            notify: true,
+            observer: '_selectedChanged'
+          },
+          fallbackSelection: String,
+          history: {
+            type: Array,
+            value: () => []
+          },
+          /**
+           * Maximun pages history, if page wasn't visited in the `maxHistory`
+           * last pages it will be removed from the DOM.
+           * Setting `0` no remove any pages from the DOM.
+           */
+          maxHistory: {
+            type: Number,
+            notify: true,
+            value: 0
+          },
+          /**
+           * Maximun number of nodes persist on DOM.
+           * Zero value for infinite.
+           */
+          maxNodes: {
+            type: Number,
+            notify: true,
+            value: 0
+          }
+        };
+      }
+
+      constructor() {
+        super();
+        this.$ = {};
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+        this.$.pages = this.shadowRoot.querySelector('#pages');
+        this.$.imports = this.shadowRoot.querySelector('#imports');
+      }
+
+      isPageAttached(page) {
+        return this.$.pages._valueToIndex(page) !== undefined;
+      }
+
+      existsImport(group) {
+        var groupAttribute = group ? `[group=${group}]` : ':not([group])';
+        var query = `link${groupAttribute}[rel=\'lazy-import\'][href]:not([href=\'\'])`;
+        return  this.querySelectorAll(query).length > 0;
+      }
+
+      _selectedChanged(page) {
+        if (this.isPageAttached(page)) {
+          this.purgePages();
+        } else if (this.existsImport(page)) {
+          this.importLazyGroup(page, this)
+            .then(this._getComponentNameFromImport.bind(this))
+            .then(this._attachComponent.bind(this))
+            .then(this.purgePages.bind(this))
+            .catch(this.showFallbackSelection.bind(this));
+        } else {
+          this.showFallbackSelection();
+        }
+      }
+
+      _getComponentNameFromImport(result) {
+        return result.loaded[0].match(/.*\/(.+?)\./)[1];
+      }
+
+      _attachComponent(componentName) {
+        this.$[this.selected] = document.createElement(componentName);
+        this.$[this.selected].id = this.selected;
+        return this.$.pages.appendChild(this.$[this.selected]);
+      }
+
+      purgePages() {
+        this.initializeSelected();
+        this.purgeByMaxNodes();
+        this.purgeByMaxHistory();
+        this.dispatchEvent(new CustomEvent('page-loaded', {
+          id: this.selected,
+          node: this.$.pages.selectedItem
+        }));
+      }
+
+      showFallbackSelection() {
+        this.selected = this.fallbackSelection || null;
+      }
+
+      initializeSelected() {
+        this.$.pages.selectedItem.history = 0;
+        const index = this.history.indexOf(this.$.pages.selectedItem);
+        if (index >= 0) {
+          this.splice('history', index, 1);
+        }
+        this.unshift('history', this.$.pages.selectedItem);
+      }
+
+      purgeByMaxNodes() {
+        if (this.maxNodes > 0) {
+          const keepNodes = this.maxNodes;
+          const numToDelete = Math.max(0, this.history.length - keepNodes);
+          const deletedItems = this.splice('history', keepNodes, numToDelete);
+          for(const itemToDelete of deletedItems) {
+            this.$.pages.removeChild(itemToDelete);
+          }
+        }
+      }
+
+      purgeByMaxHistory() {
+        for(let i = this.history.length-1; i >= 0; i--) {
+          const item = this.history[i];
+          if (this.maxHistory && item.history >= this.maxHistory) {
+            this.splice('history', i, 1);
+            this.$.pages.removeChild(item);
+            delete this.$[item.id];
+          } else {
+            item.history = ++item.history
+          }
+        }
+      }
+    }
+
+    window.customElements.define(AppPagesLoader.is, AppPagesLoader);
+  </script>
+</dom-module>

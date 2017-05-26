@@ -1,0 +1,29 @@
+<link rel="import" href="../../../polymer/polymer-element.html">
+<dom-module id="page-test">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <h1>Page [[id]] (history: [[history]])</h1>
+  </template>
+
+  <script>
+    /** @polymerElement */
+    class PageTest extends Polymer.Element {
+      static get is() { return 'page-test'; }
+      static get properties() {
+        return {
+          history: Number,
+          id: {
+            type: String,
+            reflectToAttribute: true
+          }
+        };
+      }
+    }
+
+    window.customElements.define(PageTest.is, PageTest);
+  </script>
+</dom-module>

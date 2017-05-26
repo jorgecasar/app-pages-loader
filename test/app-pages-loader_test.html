@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>app-pages-loader test</title>
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../web-component-tester/browser.js"></script>
+
+    <link rel="import" href="../app-pages-loader.html">
+  </head>
+  <body>
+
+    <test-fixture id="BasicTestFixture">
+      <template>
+        <app-pages-loader></app-pages-loader>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="ConfiguredTestFixture">
+      <template>
+        <app-pages-loader fallback-selection="page404">
+          <link rel="lazy-import" group="pageTest" href="./demo/components/page-test.html">
+          <link rel="lazy-import" group="page404" href="./demo/components/page-test-404.html">
+        </app-pages-loader>
+      </template>
+    </test-fixture>
+
+    <script>
+      suite('app-pages-loader', function() {
+        var element;
+        setup(function() {
+          element = fixture('BasicTestFixture');
+        });
+
+        test('instantiating the element with default properties works', function() {
+          assert.equal(element.selected, undefined);
+          var elementShadowRoot = element.shadowRoot;
+          var pages = elementShadowRoot.querySelector('#pages');
+          assert.isNotNull(pages);
+          assert.equal(element.maxHistory, 0);
+          assert.equal(element.maxNodes, 0);
+        });
+        test('setting a property on the element works', function() {
+          element.set('maxHistory', 1);
+          element.set('maxNodes', 1);
+          assert.equal(element.maxHistory, 1);
+          assert.equal(element.maxNodes, 1);
+        });
+      });
+
+      suite('page management', function() {
+        var element;
+        setup(function() {
+          element = fixture('ConfiguredTestFixture');
+        });
+        test('attach page when is not attached', function() {
+          let importLazyGroup = sinon.spy(element, 'importLazyGroup');
+          assert.isFalse(element.isPageAttached('pageTest'));
+          element.set('selected', 'pageTest');
+          assert(importLazyGroup.calledOnce);
+        });
+
+        test('select page 404 when page not exists', function(done) {
+          element.addEventListener('page-loaded', function() {
+            assert(element.selected, element.fallbackSelection);
+            done();
+          });
+          element.set('selected', 'fakePage');
+        });
+
+        test('max nodes', function(done) {
+          element.set('maxNodes', 1);
+          let count = 0;
+          element.addEventListener('page-loaded', function(){
+            count++;
+            if (count === 2) {
+              assert(element.$.pages.children.length, 1);
+              done();
+            }
+          });
+          element.set('selected', 'pageTest');
+          element.set('selected', 'page404');
+        });
+
+        test('max history', function(done) {
+          element.set('maxHistory', 1);
+          let count = 0;
+          element.addEventListener('page-loaded', function(){
+            count++;
+            if (count === 2) {
+              assert(element.$.pages.children.length, 1);
+              done();
+            }
+          });
+          element.set('selected', 'pageTest');
+          element.set('selected', 'page404');
+        });
+
+      });
+    </script>
+
+  </body>
+</html>

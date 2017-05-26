@@ -1,0 +1,16 @@
+{
+  "name": "app-pages-loader",
+  "description": "Component to load dinamically pages and keep a reduced DOM in huge apps.",
+  "main": "app-pages-loader.html",
+  "license": "MIT",
+  "dependencies": {
+    "polymer": "Polymer/polymer#^2.0.0",
+    "lazy-imports": "Polymer/lazy-imports#^2.0.0",
+    "iron-selector": "PolymerElements/iron-selector#^2.0.0"
+  },
+  "devDependencies": {
+    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#2.0-preview",
+    "web-component-tester": "^6.0.0-prerelease.5",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0-rc.5"
+  }
+}
